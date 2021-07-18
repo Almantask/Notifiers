@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
 
@@ -54,7 +53,7 @@ namespace Notifiers.Email.Tests
             }
 
             [Fact]
-            public async Task AzureSSLNetwork_EmailSentWithNoError()
+            public void AzureSSLNetwork_EmailSentWithNoError()
             {
                 UseAzureSSLNetwork();
 
@@ -73,10 +72,12 @@ namespace Notifiers.Email.Tests
                 _client.Host = "smtp.gmail.com";
                 _client.Port = 587;
                 _client.DeliveryMethod = SmtpDeliveryMethod.Network;
+                // UseDefaultCredentials resets credentials. Make sure this is before setting credentials.
                 _client.UseDefaultCredentials = false;
                 _client.EnableSsl = true;
 
                 var password = Environment.GetEnvironmentVariable("email_password", EnvironmentVariableTarget.User);
+                // Gmail credentials of that user
                 _client.Credentials = new NetworkCredential(_user, password);
             }
 
@@ -86,11 +87,12 @@ namespace Notifiers.Email.Tests
                 _client.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
                 // Make sure the folder exists
                 _client.PickupDirectoryLocation = @"C:\emails";
-                _client.EnableSsl = true;
             }
 
             private void UseAzureSSLNetwork()
             {
+                // Connecting through IP address does not work.
+                // You will need to add an entry in the hosts file to recognize Windows-Server (IP DNS)
                 _client.Host = "Windows-Server";
                 _client.DeliveryMethod = SmtpDeliveryMethod.Network;
                 _client.Port = 25;
@@ -113,11 +115,6 @@ namespace Notifiers.Email.Tests
 
                 return cert;
             }
-        }
-
-        public class Common
-        {
-
         }
     }
 }
